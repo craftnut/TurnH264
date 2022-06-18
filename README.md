@@ -16,12 +16,6 @@ FFmpeg builds are available at https://www.ffmpeg.org/download.html
 Everything should work as intended.
 (Please do note that this program is untested for macOS as neither me nor any of my friends have Apple hardware)
 
-Currently implemented:
-1. Video bitrate choice
-2. Audio bitrate choice
-3. Graphical file browsing
-4. Amount of threads to use
-
 Would like to implement:
 1. Progress bar
 2. NVENC and VCE
