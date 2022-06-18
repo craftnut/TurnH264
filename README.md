@@ -1,6 +1,6 @@
-#To H264
+# To H264
 ## A simple GUI program that converts the selected video into H264 using FFmpeg.
-## When in doubt, turn to H264.
+###### When in doubt, turn to H264.
 
 How to run the executable (Windows):
 Download the package from releases
