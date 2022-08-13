@@ -24,9 +24,10 @@ def download():
                 zip_ref.extract('ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe')
                 shutil.move('ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe', 'ffmpeg.exe')
                 shutil.rmtree('./ffmpeg-master-latest-win64-gpl')
+            os.remove('ffmpeg.zip')
         elif sys.platform == "linux":
             with tarfile.open('./ffmpeg.tar.xz', 'r') as tar_ref:
                 tar_ref.extract('ffmpeg-master-latest-linux64-gpl/bin/ffmpeg')
                 shutil.move('ffmpeg-master-latest-linux64-gpl/bin/ffmpeg', 'ffmpeg')
-                shutil.rmtree('./ffmpeg-master-latest-linux64-gpl')
-                os.remove('ffmpeg.tar.xz')
+                shutil.rmtree('./ffmpeg-master-latest-linux64-gpl')   
+            os.remove('ffmpeg.tar.xz')
