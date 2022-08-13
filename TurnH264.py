@@ -17,23 +17,25 @@ try:
     subprocess.Popen(['ffmpeg', '-version'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ffmpeg_path = "ffmpeg"
+    print("FFmpeg already installed, starting program!")
 except:
     if sys.platform == "win32" and os.path.exists('./ffmpeg.exe'):
         ffmpeg_path = "./ffmpeg.exe"
+        print("FFmpeg already installed, starting program!")
     elif sys.platform == "linux" and os.path.exists('./ffmpeg'):
         ffmpeg_path = "./ffmpeg"
-    elif sys.platform == "win32" or "linux":
-        print("Downloading and extracting FFmpeg, this may take some time...")
+        print("FFmpeg already installed, starting program!")
+    elif sys.platform == "win32" or sys.platform == "linux":
         download_script.download()
-        print("Done, starting program!")
         if sys.platform == "win32":
             ffmpeg_path = "./ffmpeg.exe"
         elif sys.platform == "linux":
             ffmpeg_path = "./ffmpeg"
+    elif sys.platform == "darwin" and os.path.exists('./ffmpeg.app'):
+        ffmpeg_path = "./ffmpeg.app"
     else:
-        print("FFmpeg Auto-downloader not supported on your platform, please download FFmpeg manually, exiting program.")
+        print("FFmpeg auto-downloader either failed or is not compatible on this device, please download FFmpeg manually following the README.")
         exit(1)
-
 
 class MainWindow(QtWidgets.QWidget): #Main class
     def __init__(self):
@@ -214,7 +216,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
     def choose_file(self): #Choose input file
         if sys.platform == "win32":
             ffmpeg_input_file = MainWindow.FileSelection.getOpenFileName(self, 'Select a video file', os.path.expanduser("~\Videos"), 'Video files (*.mp4 *.mkv *.avi *.flv *.mov *webm)')
-        elif sys.platform == "linux" or "darwin":
+        elif sys.platform == "linux" or sys.platform == "darwin":
             ffmpeg_input_file = MainWindow.FileSelection.getOpenFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.avi *.flv *.mov *webm)')
 
         self.input_file.setText(str(ffmpeg_input_file[0]))
@@ -222,7 +224,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
     def choose_where_output(self): #Choose output file
         if sys.platform == "win32":
             ffmpeg_output_file = MainWindow.OutputFileSelection.getSaveFileName(self, 'Select a video file', os.path.expanduser("~\Videos"), 'Video files (*.mp4 *.mkv *.mov)')
-        elif sys.platform == "linux" or "darwin":
+        elif sys.platform == "linux" or sys.platform == "darwin":
             ffmpeg_output_file = MainWindow.OutputFileSelection.getSaveFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.mov)')
 
         self.output_file.setText(str(ffmpeg_output_file[0]))
@@ -315,7 +317,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
                     time.sleep(5)
                     ffmpeg_killed = True
 
-            elif sys.platform == "linux" or "darwin": #kill on unix
+            elif sys.platform == "linux" or sys.platform == "darwin": #kill on unix
                 while ffmpeg_run.poll() is None:
                     ffmpeg_run.send_signal(signal.SIGINT)
                     time.sleep(5)
