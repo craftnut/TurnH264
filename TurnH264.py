@@ -7,19 +7,33 @@ import signal
 import threading
 import subprocess
 from PySide6 import QtCore, QtWidgets
+import download_script
 
 thread_count = os.cpu_count() #Make usages of os.cpu_count() more readable
+ffmpeg_win_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+ffmpeg_linux_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
 
 try:
     subprocess.Popen(['ffmpeg', '-version'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ffmpeg_path = "ffmpeg"
 except:
-    if os.path.exists('./ffmpeg') == True:
+    if sys.platform == "win32" and os.path.exists('./ffmpeg.exe'):
+        ffmpeg_path = "./ffmpeg.exe"
+    elif sys.platform == "linux" and os.path.exists('./ffmpeg'):
         ffmpeg_path = "./ffmpeg"
+    elif sys.platform == "win32" or "linux":
+        print("Downloading and extracting FFmpeg, this may take some time...")
+        download_script.download()
+        print("Done, starting program!")
+        if sys.platform == "win32":
+            ffmpeg_path = "./ffmpeg.exe"
+        elif sys.platform == "linux":
+            ffmpeg_path = "./ffmpeg"
     else:
-        print("Please setup ffmpeg following the instructions in the README")
-        exit()
+        print("FFmpeg Auto-downloader not supported on your platform, please download FFmpeg manually, exiting program.")
+        exit(1)
+
 
 class MainWindow(QtWidgets.QWidget): #Main class
     def __init__(self):
@@ -293,20 +307,17 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.bitrate_dialog.setText("Input the bitrate in kilobits per second in thousands, like \"1000k\":")
             self.cancel_button.hide()
             self.go_button.show()
-            self.finish_dialog.setText("Your file is done processing, check for output file.")
 
         def ffmpeg_terminate(): #Kill FFmpeg early
             if sys.platform == "win32": #kill on win32
                 while ffmpeg_run.poll() is None:
                     ffmpeg_run.kill()
-                    self.finish_dialog.setText("FFmpeg process canceled, deleting unfished files.")
                     time.sleep(5)
                     ffmpeg_killed = True
 
             elif sys.platform == "linux" or "darwin": #kill on unix
                 while ffmpeg_run.poll() is None:
                     ffmpeg_run.send_signal(signal.SIGINT)
-                    self.finish_dialog.setText("FFmpeg process canceled, deleting unfished files.")
                     time.sleep(5)
                     ffmpeg_killed = True
 

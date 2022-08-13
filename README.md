@@ -1,4 +1,4 @@
-# To H264
+# TurnH264
 ## A simple GUI program that converts the selected video into H264 using FFmpeg.
 
 <img src="screenshot.png">
@@ -11,5 +11,5 @@ Everything should work on Windows and Linux, macOS is untested.
 
 ### Would like to implement:
 -   [] Progress bar
--   [] FFmpeg downloader
+-   [X] FFmpeg downloader
 -   [] FFmpeg NVENC build support
