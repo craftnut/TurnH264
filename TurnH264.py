@@ -1,5 +1,4 @@
 # coding: utf-8
-from base64 import encode
 from ctypes import alignment
 import os
 import sys
@@ -10,6 +9,17 @@ import subprocess
 from PySide6 import QtCore, QtWidgets
 
 thread_count = os.cpu_count() #Make usages of os.cpu_count() more readable
+
+try:
+    subprocess.Popen(['ffmpeg', '-version'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ffmpeg_path = "ffmpeg"
+except:
+    if os.path.exists('./ffmpeg') == True:
+        ffmpeg_path = "./ffmpeg"
+    else:
+        print("Please setup ffmpeg following the instructions in the README")
+        exit()
 
 class MainWindow(QtWidgets.QWidget): #Main class
     def __init__(self):
@@ -50,9 +60,15 @@ class MainWindow(QtWidgets.QWidget): #Main class
                                 alignment=QtCore.Qt.AlignCenter)
         self.audio_codec_text = QtWidgets.QLabel("Use AAC or Opus?",
                                             alignment=QtCore.Qt.AlignCenter)
+        self.encoder_preset_text = QtWidgets.QLabel("Select Encoder Preset:",
+                                alignment=QtCore.Qt.AlignCenter)
         self.audio_codec = QtWidgets.QComboBox(self)
         self.audio_codec.addItems(["AAC", "Opus"])
+        self.encoder_preset = QtWidgets.QComboBox(self)
+        self.encoder_preset.addItems(["veryfast", "faster", "fast", "medium", "slow", "slower"])
+        self.encoder_preset.setCurrentIndex(3)
 
+        # column, row, height, width
         self.layout = QtWidgets.QGridLayout(self)
         self.layout.addWidget(self.input_dialog, 0, 0, 1, 2)
         self.layout.addWidget(self.input_file, 1, 0, 1, 1)
@@ -62,18 +78,20 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.choose_output_button, 3, 1, 1, 1)
         self.layout.addWidget(self.bitrate_dialog, 4, 0, 1, 2)
         self.layout.addWidget(self.bitrate, 5, 0, 1, 2)
-        self.layout.addWidget(self.audio_codec_text, 6, 0, 1, 1)
-        self.layout.addWidget(self.audio_codec, 6, 1, 1, 1)
-        self.layout.addWidget(self.audio_bitrate_dialog, 7, 0, 1, 1)
-        self.layout.addWidget(self.audio_bitrate, 7, 1, 1, 1)
-        self.layout.addWidget(self.thread_dialog, 8, 0, 1, 1)
-        self.layout.addWidget(self.threads, 8, 1, 1, 1)
-        self.layout.addWidget(self.go_button, 9, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 9, 0, 1, 2)
-        self.layout.addWidget(self.overwrite_existing_button, 9, 0, 1, 1)
-        self.layout.addWidget(self.dont_overwrite_button, 9, 1, 1, 1)
-        self.layout.addWidget(self.about_button, 10, 1, 1, 1,)
-        self.layout.addWidget(self.help_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset_text, 6, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset, 6, 1, 1, 1)
+        self.layout.addWidget(self.audio_codec_text, 7, 0, 1, 1)
+        self.layout.addWidget(self.audio_codec, 7, 1, 1, 1)
+        self.layout.addWidget(self.audio_bitrate_dialog, 8, 0, 1, 1)
+        self.layout.addWidget(self.audio_bitrate, 8, 1, 1, 1)
+        self.layout.addWidget(self.thread_dialog, 9, 0, 1, 1)
+        self.layout.addWidget(self.threads, 9, 1, 1, 1)
+        self.layout.addWidget(self.go_button, 10, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 10, 0, 1, 2)
+        self.layout.addWidget(self.overwrite_existing_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.dont_overwrite_button, 10, 1, 1, 1)
+        self.layout.addWidget(self.about_button, 11, 1, 1, 1,)
+        self.layout.addWidget(self.help_button, 11, 0, 1, 1)
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
@@ -180,12 +198,18 @@ class MainWindow(QtWidgets.QWidget): #Main class
         help_box.exec()
 
     def choose_file(self): #Choose input file
-        ffmpeg_input_file = MainWindow.FileSelection.getOpenFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.avi *.flv *.mov *webm)')
+        if sys.platform == "win32":
+            ffmpeg_input_file = MainWindow.FileSelection.getOpenFileName(self, 'Select a video file', os.path.expanduser("~\Videos"), 'Video files (*.mp4 *.mkv *.avi *.flv *.mov *webm)')
+        elif sys.platform == "linux" or "darwin":
+            ffmpeg_input_file = MainWindow.FileSelection.getOpenFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.avi *.flv *.mov *webm)')
 
         self.input_file.setText(str(ffmpeg_input_file[0]))
 
     def choose_where_output(self): #Choose output file
-        ffmpeg_output_file = MainWindow.OutputFileSelection.getSaveFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.mov)')
+        if sys.platform == "win32":
+            ffmpeg_output_file = MainWindow.OutputFileSelection.getSaveFileName(self, 'Select a video file', os.path.expanduser("~\Videos"), 'Video files (*.mp4 *.mkv *.mov)')
+        elif sys.platform == "linux" or "darwin":
+            ffmpeg_output_file = MainWindow.OutputFileSelection.getSaveFileName(self, 'Select a video file', os.path.expanduser("~"), 'Video files (*.mp4 *.mkv *.mov)')
 
         self.output_file.setText(str(ffmpeg_output_file[0]))
 
@@ -227,27 +251,31 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
     def run_ffmpeg(self): #FFmpeg pre-run and commands
 
+        
+
+
         ffmpeg_input_file = self.input_file.text()
         ffmpeg_output_file = self.output_file.text()
         ffmpeg_bitrate = self.bitrate.text()
         ffmpeg_audio_bitrate = str(int(self.audio_bitrate.value()*32))+'k'
         ffmpeg_threading = self.threads.value()
         ffmpeg_audio_codec = self.audio_codec.currentIndex()
+        ffmpeg_encoder_preset = self.encoder_preset.currentText()
         audio_codecs = ["aac", "libopus"]
         ffmpeg_audio_codec = audio_codecs[ffmpeg_audio_codec]
         finish_box = MainWindow.FinishDialog()
         finish_box.resize(160,80)
-
         self.input_dialog.setText("Please wait before sending another process...")
         self.bitrate_dialog.setText("Please wait before sending another process...")
         self.cancel_button.show()
         self.go_button.hide()
         ffmpeg_run = subprocess.Popen ([
-            './ffmpeg', '-y', # if you would like to use your PATH's FFmpeg, remove the "./" from "./ffmpeg"
+            ffmpeg_path, '-y', # if you would like to use your PATH's FFmpeg, remove the "./" from "./ffmpeg"
             '-i', ffmpeg_input_file,
             '-c:v', 'libx264', '-b:v', str(ffmpeg_bitrate) if str(ffmpeg_bitrate) else '1000k',
             '-c:a', str(ffmpeg_audio_codec),
             '-b:a', str(ffmpeg_audio_bitrate),
+            '-preset', str(ffmpeg_encoder_preset),
             '-vbr', 'off',
             '-threads', str(ffmpeg_threading) if str(ffmpeg_threading) else '4',
             #'-progress', '-', '-nostats',
@@ -294,7 +322,7 @@ if __name__ == "__main__": #Launch the main-window on run
     app = QtWidgets.QApplication([])
 
     main_app_window = MainWindow()
-    main_app_window.resize(380, 240)
+    main_app_window.resize(380, 340)
     main_app_window.show()
 
     sys.exit(app.exec())
