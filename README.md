@@ -11,7 +11,7 @@ FFmpeg builds are available at https://www.ffmpeg.org/download.html </br>
 Everything should work on Windows and Linux, while it is not tested on other systems, it should work on any machine that supports Python and FFmpeg. </br>
 
 ### Would like to implement:
--   [] Progress bar
+-   [X] Progress bar
 -   [X] FFmpeg downloader
--   [] Proper macOS support
--   [] FFmpeg NVENC build support
+-   [ ] Proper macOS support
+-   [ ] FFmpeg NVENC build support

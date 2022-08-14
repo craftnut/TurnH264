@@ -6,33 +6,43 @@ import time
 import signal
 import threading
 import subprocess
-from PySide6 import QtCore, QtWidgets
 import download_script
 
+try: #Detect dependencies
+    from PySide6 import QtCore, QtWidgets
+    import wget
+except: #Install dependencies if not found
+    subprocess.call(['python', '-m', 'pip', 'install', 'pyside6', 'wget'])
+    from PySide6 import QtCore, QtWidgets
+
 thread_count = os.cpu_count() #Make usages of os.cpu_count() more readable
-ffmpeg_win_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
-ffmpeg_linux_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
 
 try:
     subprocess.Popen(['ffmpeg', '-version'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ffmpeg_path = "ffmpeg"
+    ffprobe_path = "ffprobe"
     print("FFmpeg already installed, starting program!")
 except:
     if sys.platform == "win32" and os.path.exists('./ffmpeg.exe'):
         ffmpeg_path = "./ffmpeg.exe"
+        ffprobe_path = "./ffprobe.exe"
         print("FFmpeg already installed, starting program!")
     elif sys.platform == "linux" and os.path.exists('./ffmpeg'):
         ffmpeg_path = "./ffmpeg"
+        ffprobe_path = "./ffprobe"
         print("FFmpeg already installed, starting program!")
     elif sys.platform == "win32" or sys.platform == "linux":
         download_script.download()
         if sys.platform == "win32":
             ffmpeg_path = "./ffmpeg.exe"
+            ffprobe_path = "./ffprobe.exe"
         elif sys.platform == "linux":
             ffmpeg_path = "./ffmpeg"
+            ffprobe_path = "./ffprobe"
     elif sys.platform == "darwin" and os.path.exists('./ffmpeg.app'):
         ffmpeg_path = "./ffmpeg.app"
+        ffprobe_path = "./ffprobe.app"
     else:
         print("FFmpeg auto-downloader either failed or is not compatible on this device, please download FFmpeg manually following the README.")
         exit(1)
@@ -78,6 +88,8 @@ class MainWindow(QtWidgets.QWidget): #Main class
                                             alignment=QtCore.Qt.AlignCenter)
         self.encoder_preset_text = QtWidgets.QLabel("Select Encoder Preset:",
                                 alignment=QtCore.Qt.AlignCenter)
+        self.progress_bar_text = QtWidgets.QLabel("",
+                                alignment=QtCore.Qt.AlignCenter)
         self.audio_codec = QtWidgets.QComboBox(self)
         self.audio_codec.addItems(["AAC", "Opus"])
         self.encoder_preset = QtWidgets.QComboBox(self)
@@ -89,7 +101,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.input_dialog, 0, 0, 1, 2)
         self.layout.addWidget(self.input_file, 1, 0, 1, 1)
         self.layout.addWidget(self.choose_file_button, 1, 1, 1, 1)
-        self.layout.addWidget(self.output_dialog, 2, 0, 1, 1)
+        self.layout.addWidget(self.output_dialog, 2, 0, 1, 2)
         self.layout.addWidget(self.output_file, 3, 0, 1, 1)
         self.layout.addWidget(self.choose_output_button, 3, 1, 1, 1)
         self.layout.addWidget(self.bitrate_dialog, 4, 0, 1, 2)
@@ -103,7 +115,8 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.thread_dialog, 9, 0, 1, 1)
         self.layout.addWidget(self.threads, 9, 1, 1, 1)
         self.layout.addWidget(self.go_button, 10, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 10, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.progress_bar_text, 10, 1, 1, 1)
         self.layout.addWidget(self.overwrite_existing_button, 10, 0, 1, 1)
         self.layout.addWidget(self.dont_overwrite_button, 10, 1, 1, 1)
         self.layout.addWidget(self.about_button, 11, 1, 1, 1,)
@@ -111,6 +124,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
+        self.progress_bar_text.hide()
         
         self.choose_file_button.clicked.connect(self.choose_file)
         self.go_button.clicked.connect(self.go_button_clicked)
@@ -129,7 +143,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.setWindowTitle("About Program")
             self.about_dialog = QtWidgets.QLabel("TurnH264 is licensed under the Helium License",
                                                 alignment=QtCore.Qt.AlignCenter)
-            self.about_copyright = QtWidgets.QLabel("TurnH264 is © 2022 craftnut and contributors",
+            self.about_copyright = QtWidgets.QLabel("TurnH264 is © 2022 craftnut",
                                                 alignment=QtCore.Qt.AlignCenter)
             self.about_ffmpeg = QtWidgets.QLabel("FFmpeg is licensed under the GNU GPL license",
                                                 alignment=QtCore.Qt.AlignCenter)
@@ -155,7 +169,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
                                                 alignment=QtCore.Qt.AlignCenter)
             self.help_bitrate = QtWidgets.QLabel("1000k in KBPS is equivelent to 1 MBPS.",
                                                 alignment=QtCore.Qt.AlignCenter)
-            self.program_wont_work = QtWidgets.QLabel("Program not working? Put an FFmpeg executable in the same directory.",
+            self.program_wont_work = QtWidgets.QLabel("Program not working? Put an FFmpeg and FFprobe executable in the same directory.",
                                                 alignment=QtCore.Qt.AlignCenter)
             self.found_bug = QtWidgets.QLabel("Found a bug? Report it on the GitHub page.",
                                                 alignment=QtCore.Qt.AlignCenter)
@@ -267,8 +281,10 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
     def run_ffmpeg(self): #FFmpeg pre-run and commands
 
-        
-
+        progress = self.input_file.text() + '.tmp'
+        if os.path.exists(progress):
+            os.remove(progress)
+        progress_file = open(progress, 'w')
 
         ffmpeg_input_file = self.input_file.text()
         ffmpeg_output_file = self.output_file.text()
@@ -284,6 +300,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.input_dialog.setText("Please wait before sending another process...")
         self.bitrate_dialog.setText("Please wait before sending another process...")
         self.cancel_button.show()
+        self.progress_bar_text.show()
         self.go_button.hide()
         ffmpeg_run = subprocess.Popen ([
             ffmpeg_path, '-y', # if you would like to use your PATH's FFmpeg, remove the "./" from "./ffmpeg"
@@ -294,9 +311,9 @@ class MainWindow(QtWidgets.QWidget): #Main class
             '-preset', str(ffmpeg_encoder_preset),
             '-vbr', 'off',
             '-threads', str(ffmpeg_threading) if str(ffmpeg_threading) else '4',
-            #'-progress', '-', '-nostats',
+            '-progress', '-', '-nostats',
             ffmpeg_output_file
-            ])      
+            ], stdout=progress_file, stderr=progress_file)      
 
         def ffmpeg_wait(): #Wait for FFmpeg, before running what shows after
 
@@ -308,7 +325,9 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.input_dialog.setText("Input the path to the video:")
             self.bitrate_dialog.setText("Input the bitrate in kilobits per second in thousands, like \"1000k\":")
             self.cancel_button.hide()
+            self.progress_bar_text.hide()
             self.go_button.show()
+            os.remove(progress)
 
         def ffmpeg_terminate(): #Kill FFmpeg early
             if sys.platform == "win32": #kill on win32
@@ -327,15 +346,49 @@ class MainWindow(QtWidgets.QWidget): #Main class
                 os.remove(ffmpeg_output_file)
                 ffmpeg_killed = False
 
+        def progress_bar(iteration, total, length=12, fill="#", nullp="-"): #Progress bar
+            filledLength = length * iteration // total
+            bar = (fill*length)[:filledLength] + (nullp*(length - filledLength))
+            command = f"[{bar}]"
+            return command
+
+        def watch_progress(): #For progress bar
+            time.sleep(0.5)
+            frames = subprocess.check_output([
+                'ffprobe', '-v', 'error', '-select_streams', 'v:0',
+                '-count_frames', '-show_entries', 'stream=nb_read_frames',
+                '-print_format', 'csv', self.input_file.text()
+            ])
+            frames_total = frames.decode('utf-8').strip()
+            frames_total = int("".join([val for val in frames_total if val.isnumeric()]))
+            
+            while (ffmpeg_run.poll() == None):
+                progress_data = open(progress)
+                progress_lines = progress_data.readlines()
+                progress_data.close()
+                if len(progress_lines) > 12:
+                    progress_lines_final = [i.strip().split("=") for i in progress_lines[-12:]]
+                    try:
+                        progress_dictionary = {data[0]: data[1] for data in progress_lines_final}
+                    except:
+                        continue
+                    progress_used_list = progress_bar(int(progress_dictionary['frame']), frames_total, 64, fill='.', nullp=' ')
+                    #print(self.progress_bar_text.text())
+                    self.progress_bar_text.setText(progress_used_list)
+                progress_data.close()
+                time.sleep(0.5)
+                    
         self.cancel_button.clicked.connect(ffmpeg_terminate)
         wait_on_ffmpeg = threading.Thread(target=ffmpeg_wait)
         wait_on_ffmpeg.start()
+        progress_thread = threading.Thread(target=watch_progress)
+        progress_thread.start()
 
 if __name__ == "__main__": #Launch the main-window on run
     app = QtWidgets.QApplication([])
 
     main_app_window = MainWindow()
-    main_app_window.resize(380, 340)
+    main_app_window.resize(560, 340)
     main_app_window.show()
 
     sys.exit(app.exec())
