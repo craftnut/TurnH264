@@ -7,13 +7,7 @@ import signal
 import threading
 import subprocess
 import download_script
-
-try: #Detect dependencies
-    from PySide6 import QtCore, QtWidgets
-    import wget
-except: #Install dependencies if not found
-    subprocess.call(['python', '-m', 'pip', 'install', 'pyside6', 'wget'])
-    from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 thread_count = os.cpu_count() #Make usages of os.cpu_count() more readable
 
