@@ -1,15 +1,19 @@
 # coding: utf-8
 import os
-import sys
-import wget
 import shutil
+import sys
 import tarfile
 import zipfile
+
+import wget
+
 
 def download():
 
     dl = False
     print("Downloading FFmpeg, please wait...")
+
+    #FFmpeg latest build links, thanks BtbN!
     if sys.platform == "win32":
         wget.download('https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip')
     elif sys.platform == "linux":

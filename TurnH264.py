@@ -1,23 +1,23 @@
 # coding: utf-8
-from ctypes import alignment
 import os
-import sys
-import time
 import signal
-import threading
 import subprocess
+import sys
+import threading
+import time
+from ctypes import alignment
+
+from PySide6 import QtCore, QtWidgets, QtGui
+
 import download_script
-from PySide6 import QtCore, QtWidgets
 
-thread_count = os.cpu_count() #Make usages of os.cpu_count() more readable
-
-try:
+try: #to see if FFmpeg is available system-wide
     subprocess.Popen(['ffmpeg', '-version'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ffmpeg_path = "ffmpeg"
     ffprobe_path = "ffprobe"
     print("FFmpeg already installed, starting program!")
-except:
+except: #if it's not, check if it's already been downloaded
     if sys.platform == "win32" and os.path.exists('./ffmpeg.exe'):
         ffmpeg_path = "./ffmpeg.exe"
         ffprobe_path = "./ffprobe.exe"
@@ -26,7 +26,7 @@ except:
         ffmpeg_path = "./ffmpeg"
         ffprobe_path = "./ffprobe"
         print("FFmpeg already installed, starting program!")
-    elif sys.platform == "win32" or sys.platform == "linux":
+    elif sys.platform == "win32" or sys.platform == "linux": #if not, download it
         download_script.download()
         if sys.platform == "win32":
             ffmpeg_path = "./ffmpeg.exe"
@@ -46,6 +46,10 @@ class MainWindow(QtWidgets.QWidget): #Main class
         super().__init__()
         self.setWindowTitle("TurnH264")
 
+        #Import fonts
+        QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Regular.ttf")
+        QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Semibold.ttf")
+
         self.go_button = QtWidgets.QPushButton("Go")
         self.cancel_button = QtWidgets.QPushButton("Cancel Process")
         self.choose_file_button = QtWidgets.QPushButton("Choose a File")
@@ -56,23 +60,23 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.help_button = QtWidgets.QPushButton("Help")
         self.threads = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.threads.setTickInterval(1)
-        self.threads.setMaximum(thread_count)
-        self.threads.setValue(thread_count/2)
+        self.threads.setMaximum(os.cpu_count())
+        self.threads.setValue(os.cpu_count()/2)
         self.audio_bitrate = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.audio_bitrate.setMinimum(64/32)
         self.audio_bitrate.setMaximum(256/32)
         self.audio_bitrate.setValue(160/32)
+        self.video_quality = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        self.video_quality.setMinimum(0)
+        self.video_quality.setMaximum(51)
+        self.video_quality.setValue(22)
         self.input_dialog = QtWidgets.QLabel("Input the path to the video:",
                                 alignment=QtCore.Qt.AlignCenter)
-        self.bitrate_dialog = QtWidgets.QLabel("Input the bitrate in kilobits per second in thousands, like \"1000k\":",
-                                alignment=QtCore.Qt.AlignCenter)
-        self.thread_dialog = QtWidgets.QLabel(f"Select the number of CPU threads to use: {self.threads.value()} / {thread_count}",
+        self.thread_dialog = QtWidgets.QLabel(f"Select the number of CPU threads to use: {self.threads.value()} / {os.cpu_count()}",
                                 alignment=QtCore.Qt.AlignCenter)
         self.audio_bitrate_dialog = QtWidgets.QLabel(f"Select the audio bitrate: {self.audio_bitrate.value()*32}",
                                 alignment=QtCore.Qt.AlignCenter)
         self.input_file = QtWidgets.QLineEdit(self,
-                                alignment=QtCore.Qt.AlignCenter)
-        self.bitrate = QtWidgets.QLineEdit(self,
                                 alignment=QtCore.Qt.AlignCenter)
         self.output_dialog = QtWidgets.QLabel("Input where to save the output:",
                                 alignment=QtCore.Qt.AlignCenter)
@@ -83,6 +87,8 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.encoder_preset_text = QtWidgets.QLabel("Select Encoder Preset:",
                                 alignment=QtCore.Qt.AlignCenter)
         self.progress_bar_text = QtWidgets.QLabel("",
+                                alignment=QtCore.Qt.AlignCenter)
+        self.video_quality_text = QtWidgets.QLabel(f"H264 quality setting: {self.video_quality.value()}",
                                 alignment=QtCore.Qt.AlignCenter)
         self.audio_codec = QtWidgets.QComboBox(self)
         self.audio_codec.addItems(["AAC", "Opus"])
@@ -98,23 +104,23 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.output_dialog, 2, 0, 1, 2)
         self.layout.addWidget(self.output_file, 3, 0, 1, 1)
         self.layout.addWidget(self.choose_output_button, 3, 1, 1, 1)
-        self.layout.addWidget(self.bitrate_dialog, 4, 0, 1, 2)
-        self.layout.addWidget(self.bitrate, 5, 0, 1, 2)
-        self.layout.addWidget(self.encoder_preset_text, 6, 0, 1, 1)
-        self.layout.addWidget(self.encoder_preset, 6, 1, 1, 1)
-        self.layout.addWidget(self.audio_codec_text, 7, 0, 1, 1)
-        self.layout.addWidget(self.audio_codec, 7, 1, 1, 1)
-        self.layout.addWidget(self.audio_bitrate_dialog, 8, 0, 1, 1)
-        self.layout.addWidget(self.audio_bitrate, 8, 1, 1, 1)
-        self.layout.addWidget(self.thread_dialog, 9, 0, 1, 1)
-        self.layout.addWidget(self.threads, 9, 1, 1, 1)
-        self.layout.addWidget(self.go_button, 10, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 10, 0, 1, 1)
-        self.layout.addWidget(self.progress_bar_text, 10, 1, 1, 1)
-        self.layout.addWidget(self.overwrite_existing_button, 10, 0, 1, 1)
-        self.layout.addWidget(self.dont_overwrite_button, 10, 1, 1, 1)
-        self.layout.addWidget(self.about_button, 11, 1, 1, 1,)
-        self.layout.addWidget(self.help_button, 11, 0, 1, 1)
+        self.layout.addWidget(self.video_quality_text, 4, 0, 1, 1)
+        self.layout.addWidget(self.video_quality, 4, 1, 1, 1)
+        self.layout.addWidget(self.encoder_preset_text, 5, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset, 5, 1, 1, 1)
+        self.layout.addWidget(self.audio_codec_text, 6, 0, 1, 1)
+        self.layout.addWidget(self.audio_codec, 6, 1, 1, 1)
+        self.layout.addWidget(self.audio_bitrate_dialog, 7, 0, 1, 1)
+        self.layout.addWidget(self.audio_bitrate, 7, 1, 1, 1)
+        self.layout.addWidget(self.thread_dialog, 8, 0, 1, 1)
+        self.layout.addWidget(self.threads, 8, 1, 1, 1)
+        self.layout.addWidget(self.go_button, 9, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 9, 0, 1, 1)
+        self.layout.addWidget(self.progress_bar_text, 9, 1, 1, 1)
+        self.layout.addWidget(self.overwrite_existing_button, 9, 0, 1, 1)
+        self.layout.addWidget(self.dont_overwrite_button, 9, 1, 1, 1)
+        self.layout.addWidget(self.about_button, 10, 1, 1, 1,)
+        self.layout.addWidget(self.help_button, 10, 0, 1, 1)
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
@@ -124,6 +130,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.go_button.clicked.connect(self.go_button_clicked)
         self.threads.valueChanged.connect(self.threads_slider_updated)
         self.audio_bitrate.valueChanged.connect(self.audio_slider_updated)
+        self.video_quality.valueChanged.connect(self.audio_slider_updated)
         self.overwrite_existing_button.clicked.connect(self.overwrite_files)
         self.dont_overwrite_button.clicked.connect(self.dont_overwrite_files)
         self.choose_output_button.clicked.connect(self.choose_where_output)
@@ -161,9 +168,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.setWindowTitle("Help")
             self.help_output = QtWidgets.QLabel("If you didn't select an output, check the directory for output.mp4",
                                                 alignment=QtCore.Qt.AlignCenter)
-            self.help_bitrate = QtWidgets.QLabel("1000k in KBPS is equivelent to 1 MBPS.",
-                                                alignment=QtCore.Qt.AlignCenter)
-            self.program_wont_work = QtWidgets.QLabel("Program not working? Put an FFmpeg and FFprobe executable in the same directory.",
+            self.help_bitrate = QtWidgets.QLabel("Lower values for quality are higher quality, don't ask me why, I wish I knew.",
                                                 alignment=QtCore.Qt.AlignCenter)
             self.found_bug = QtWidgets.QLabel("Found a bug? Report it on the GitHub page.",
                                                 alignment=QtCore.Qt.AlignCenter)
@@ -171,7 +176,6 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.layout = QtWidgets.QVBoxLayout(self)
             self.layout.addWidget(self.help_output)
             self.layout.addWidget(self.help_bitrate)
-            self.layout.addWidget(self.program_wont_work)
             self.layout.addWidget(self.found_bug)
 
     class FinishDialog(QtWidgets.QDialog): #Dialog when your process finishes
@@ -238,12 +242,14 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.output_file.setText(str(ffmpeg_output_file[0]))
 
     def threads_slider_updated(self): #CPU threads slider
-        self.thread_dialog.setText(f"Select the number of CPU threads to use: {self.threads.value()} / {thread_count}")
+        self.thread_dialog.setText(f"Select the number of CPU threads to use: {self.threads.value()} / {os.cpu_count()}")
         self.thread_dialog.update()
 
     def audio_slider_updated(self): #Audio bitrate slider
         self.audio_bitrate_dialog.setText(f"Select the audio bitrate: {self.audio_bitrate.value()*32}")
         self.audio_bitrate_dialog.update()
+        self.video_quality_text.setText(f"H264 quality setting: {self.video_quality.value()}")
+        self.video_quality_text.update()
 
     def go_button_clicked(self): #User clicked go
         
@@ -282,7 +288,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
         ffmpeg_input_file = self.input_file.text()
         ffmpeg_output_file = self.output_file.text()
-        ffmpeg_bitrate = self.bitrate.text()
+        ffmpeg_crf = self.video_quality.value()
         ffmpeg_audio_bitrate = str(int(self.audio_bitrate.value()*32))+'k'
         ffmpeg_threading = self.threads.value()
         ffmpeg_audio_codec = self.audio_codec.currentIndex()
@@ -291,15 +297,14 @@ class MainWindow(QtWidgets.QWidget): #Main class
         ffmpeg_audio_codec = audio_codecs[ffmpeg_audio_codec]
         finish_box = MainWindow.FinishDialog()
         finish_box.resize(160,80)
-        self.input_dialog.setText("Please wait before sending another process...")
-        self.bitrate_dialog.setText("Please wait before sending another process...")
         self.cancel_button.show()
         self.progress_bar_text.show()
         self.go_button.hide()
         ffmpeg_run = subprocess.Popen ([
             ffmpeg_path, '-y', # if you would like to use your PATH's FFmpeg, remove the "./" from "./ffmpeg"
             '-i', ffmpeg_input_file,
-            '-c:v', 'libx264', '-b:v', str(ffmpeg_bitrate) if str(ffmpeg_bitrate) else '1000k',
+            '-c:v', 'libx264',
+            '-crf', str(ffmpeg_crf),
             '-c:a', str(ffmpeg_audio_codec),
             '-b:a', str(ffmpeg_audio_bitrate),
             '-preset', str(ffmpeg_encoder_preset),
@@ -316,8 +321,6 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
             self.ffmpeg_running = False
             finish_box.exec()
-            self.input_dialog.setText("Input the path to the video:")
-            self.bitrate_dialog.setText("Input the bitrate in kilobits per second in thousands, like \"1000k\":")
             self.cancel_button.hide()
             self.progress_bar_text.hide()
             self.go_button.show()
@@ -382,7 +385,12 @@ if __name__ == "__main__": #Launch the main-window on run
     app = QtWidgets.QApplication([])
 
     main_app_window = MainWindow()
-    main_app_window.resize(560, 340)
+    main_app_window.resize(640, 360)
     main_app_window.show()
+
+    #load the stylesheet
+    with open('style.qss', 'r') as style:
+        _style = style.read()
+        app.setStyleSheet(_style)
 
     sys.exit(app.exec())
