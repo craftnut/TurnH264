@@ -7,7 +7,7 @@ import threading
 import time
 from ctypes import alignment
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import QtCore, QtGui, QtWidgets
 
 import download_script
 
@@ -56,8 +56,8 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.choose_output_button = QtWidgets.QPushButton("Choose output")
         self.overwrite_existing_button = QtWidgets.QPushButton("Overwrite")
         self.dont_overwrite_button = QtWidgets.QPushButton("Cancel")
-        self.about_button = QtWidgets.QPushButton("About Program")
-        self.help_button = QtWidgets.QPushButton("Help")
+        self.about_button = QtWidgets.QPushButton("Program Information")
+        self.help_button = QtWidgets.QPushButton("Program Help")
         self.threads = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.threads.setTickInterval(1)
         self.threads.setMaximum(os.cpu_count())
@@ -70,26 +70,30 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.video_quality.setMinimum(0)
         self.video_quality.setMaximum(51)
         self.video_quality.setValue(22)
-        self.input_dialog = QtWidgets.QLabel("Input the path to the video:",
-                                alignment=QtCore.Qt.AlignCenter)
+        self.input_dialog = QtWidgets.QLabel("Choose input video:",
+                                             alignment=QtCore.Qt.AlignCenter)
         self.thread_dialog = QtWidgets.QLabel(f"Select the number of CPU threads to use: {self.threads.value()} / {os.cpu_count()}",
-                                alignment=QtCore.Qt.AlignCenter)
+                                              alignment=QtCore.Qt.AlignCenter)
         self.audio_bitrate_dialog = QtWidgets.QLabel(f"Select the audio bitrate: {self.audio_bitrate.value()*32}",
-                                alignment=QtCore.Qt.AlignCenter)
+                                                     alignment=QtCore.Qt.AlignCenter)
         self.input_file = QtWidgets.QLineEdit(self,
-                                alignment=QtCore.Qt.AlignCenter)
-        self.output_dialog = QtWidgets.QLabel("Input where to save the output:",
-                                alignment=QtCore.Qt.AlignCenter)
+                                              alignment=QtCore.Qt.AlignCenter)
+        self.output_dialog = QtWidgets.QLabel("Choose where to save output:",
+                                              alignment=QtCore.Qt.AlignCenter)
         self.output_file = QtWidgets.QLineEdit(self,
-                                alignment=QtCore.Qt.AlignCenter)
+                                               alignment=QtCore.Qt.AlignCenter)
         self.audio_codec_text = QtWidgets.QLabel("Use AAC or Opus?",
-                                            alignment=QtCore.Qt.AlignCenter)
+                                                 alignment=QtCore.Qt.AlignCenter)
         self.encoder_preset_text = QtWidgets.QLabel("Select Encoder Preset:",
-                                alignment=QtCore.Qt.AlignCenter)
+                                                    alignment=QtCore.Qt.AlignCenter)
         self.progress_bar_text = QtWidgets.QLabel("",
-                                alignment=QtCore.Qt.AlignCenter)
+                                                  alignment=QtCore.Qt.AlignCenter)
         self.video_quality_text = QtWidgets.QLabel(f"H264 quality setting: {self.video_quality.value()}",
-                                alignment=QtCore.Qt.AlignCenter)
+                                                   alignment=QtCore.Qt.AlignCenter)
+        self.resolution_text = QtWidgets.QLabel("Change resolution (leave blank for original):",
+                                                alignment=QtCore.Qt.AlignCenter)
+        self.resolution = QtWidgets.QLineEdit(self,
+                                              alignment=QtCore.Qt.AlignCenter)
         self.audio_codec = QtWidgets.QComboBox(self)
         self.audio_codec.addItems(["AAC", "Opus"])
         self.encoder_preset = QtWidgets.QComboBox(self)
@@ -98,29 +102,31 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
         # column, row, height, width
         self.layout = QtWidgets.QGridLayout(self)
-        self.layout.addWidget(self.input_dialog, 0, 0, 1, 2)
-        self.layout.addWidget(self.input_file, 1, 0, 1, 1)
-        self.layout.addWidget(self.choose_file_button, 1, 1, 1, 1)
-        self.layout.addWidget(self.output_dialog, 2, 0, 1, 2)
-        self.layout.addWidget(self.output_file, 3, 0, 1, 1)
-        self.layout.addWidget(self.choose_output_button, 3, 1, 1, 1)
-        self.layout.addWidget(self.video_quality_text, 4, 0, 1, 1)
-        self.layout.addWidget(self.video_quality, 4, 1, 1, 1)
-        self.layout.addWidget(self.encoder_preset_text, 5, 0, 1, 1)
-        self.layout.addWidget(self.encoder_preset, 5, 1, 1, 1)
-        self.layout.addWidget(self.audio_codec_text, 6, 0, 1, 1)
-        self.layout.addWidget(self.audio_codec, 6, 1, 1, 1)
-        self.layout.addWidget(self.audio_bitrate_dialog, 7, 0, 1, 1)
-        self.layout.addWidget(self.audio_bitrate, 7, 1, 1, 1)
-        self.layout.addWidget(self.thread_dialog, 8, 0, 1, 1)
-        self.layout.addWidget(self.threads, 8, 1, 1, 1)
-        self.layout.addWidget(self.go_button, 9, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 9, 0, 1, 1)
-        self.layout.addWidget(self.progress_bar_text, 9, 1, 1, 1)
-        self.layout.addWidget(self.overwrite_existing_button, 9, 0, 1, 1)
-        self.layout.addWidget(self.dont_overwrite_button, 9, 1, 1, 1)
-        self.layout.addWidget(self.about_button, 10, 1, 1, 1,)
-        self.layout.addWidget(self.help_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.input_dialog, 0, 0, 1, 1)
+        self.layout.addWidget(self.input_file, 1, 1, 1, 1)
+        self.layout.addWidget(self.choose_file_button, 1, 0, 1, 1)
+        self.layout.addWidget(self.output_dialog, 2, 0, 1, 1)
+        self.layout.addWidget(self.output_file, 3, 1, 1, 1)
+        self.layout.addWidget(self.choose_output_button, 3, 0, 1, 1)
+        self.layout.addWidget(self.resolution_text, 4, 0, 1, 1)
+        self.layout.addWidget(self.resolution, 4, 1, 1, 1)
+        self.layout.addWidget(self.video_quality_text, 5, 0, 1, 1)
+        self.layout.addWidget(self.video_quality, 5, 1, 1, 1)
+        self.layout.addWidget(self.encoder_preset_text, 6, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset, 6, 1, 1, 1)
+        self.layout.addWidget(self.audio_codec_text, 7, 0, 1, 1)
+        self.layout.addWidget(self.audio_codec, 7, 1, 1, 1)
+        self.layout.addWidget(self.audio_bitrate_dialog, 8, 0, 1, 1)
+        self.layout.addWidget(self.audio_bitrate, 8, 1, 1, 1)
+        self.layout.addWidget(self.thread_dialog, 9, 0, 1, 1)
+        self.layout.addWidget(self.threads, 9, 1, 1, 1)
+        self.layout.addWidget(self.go_button, 10, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.progress_bar_text, 10, 1, 1, 1)
+        self.layout.addWidget(self.overwrite_existing_button, 10, 0, 1, 1)
+        self.layout.addWidget(self.dont_overwrite_button, 10, 1, 1, 1)
+        self.layout.addWidget(self.about_button, 11, 0, 1, 1,)
+        self.layout.addWidget(self.help_button, 11, 1, 1, 1)
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
@@ -128,9 +134,9 @@ class MainWindow(QtWidgets.QWidget): #Main class
         
         self.choose_file_button.clicked.connect(self.choose_file)
         self.go_button.clicked.connect(self.go_button_clicked)
-        self.threads.valueChanged.connect(self.threads_slider_updated)
-        self.audio_bitrate.valueChanged.connect(self.audio_slider_updated)
-        self.video_quality.valueChanged.connect(self.audio_slider_updated)
+        self.threads.valueChanged.connect(self.slider_updated)
+        self.audio_bitrate.valueChanged.connect(self.slider_updated)
+        self.video_quality.valueChanged.connect(self.slider_updated)
         self.overwrite_existing_button.clicked.connect(self.overwrite_files)
         self.dont_overwrite_button.clicked.connect(self.dont_overwrite_files)
         self.choose_output_button.clicked.connect(self.choose_where_output)
@@ -241,15 +247,13 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
         self.output_file.setText(str(ffmpeg_output_file[0]))
 
-    def threads_slider_updated(self): #CPU threads slider
-        self.thread_dialog.setText(f"Select the number of CPU threads to use: {self.threads.value()} / {os.cpu_count()}")
-        self.thread_dialog.update()
-
-    def audio_slider_updated(self): #Audio bitrate slider
+    def slider_updated(self): #Update the information text for sliders when the value changes.
         self.audio_bitrate_dialog.setText(f"Select the audio bitrate: {self.audio_bitrate.value()*32}")
         self.audio_bitrate_dialog.update()
         self.video_quality_text.setText(f"H264 quality setting: {self.video_quality.value()}")
         self.video_quality_text.update()
+        self.thread_dialog.setText(f"Select the number of CPU threads to use: {self.threads.value()} / {os.cpu_count()}")
+        self.thread_dialog.update()
 
     def go_button_clicked(self): #User clicked go
         
@@ -285,8 +289,18 @@ class MainWindow(QtWidgets.QWidget): #Main class
         if os.path.exists(progress):
             os.remove(progress)
         progress_file = open(progress, 'w')
-
+        
         ffmpeg_input_file = self.input_file.text()
+         
+        #Get original resolution if not specified
+        if self.resolution.text() == "":
+            ffmpeg_res = "scale=" + subprocess.check_output([
+                'ffprobe', '-v', 'error', '-select_streams', 'v:0',
+                '-show_entries', 'stream=width,height', '-of' 'csv=s=x:p=0', str(ffmpeg_input_file)
+            ])
+        else: #If there is text contained, use the user's given resolution
+            ffmpeg_res = "scale=" + self.resolution.text()
+            
         ffmpeg_output_file = self.output_file.text()
         ffmpeg_crf = self.video_quality.value()
         ffmpeg_audio_bitrate = str(int(self.audio_bitrate.value()*32))+'k'
@@ -307,6 +321,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
             '-crf', str(ffmpeg_crf),
             '-c:a', str(ffmpeg_audio_codec),
             '-b:a', str(ffmpeg_audio_bitrate),
+            '-vf', str(ffmpeg_res),
             '-preset', str(ffmpeg_encoder_preset),
             '-vbr', 'off',
             '-threads', str(ffmpeg_threading) if str(ffmpeg_threading) else '4',
