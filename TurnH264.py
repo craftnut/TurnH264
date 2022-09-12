@@ -49,7 +49,11 @@ class MainWindow(QtWidgets.QWidget): #Main class
         #Import fonts
         QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Regular.ttf")
         QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Semibold.ttf")
+        
+        #Setup window icon
+        self.setWindowIcon(QtGui.QIcon("./image_assets/Python-logo-notext.svg"))
 
+        #Setup main window elements
         self.go_button = QtWidgets.QPushButton("Go")
         self.cancel_button = QtWidgets.QPushButton("Cancel Process")
         self.choose_file_button = QtWidgets.QPushButton("Choose a File")
@@ -149,16 +153,18 @@ class MainWindow(QtWidgets.QWidget): #Main class
 
             self.setWindowTitle("About Program")
             self.about_dialog = QtWidgets.QLabel("TurnH264 is licensed under the Helium License",
-                                                alignment=QtCore.Qt.AlignCenter)
+                                                 alignment=QtCore.Qt.AlignCenter)
             self.about_copyright = QtWidgets.QLabel("TurnH264 is © 2022 craftnut",
-                                                alignment=QtCore.Qt.AlignCenter)
+                                                    alignment=QtCore.Qt.AlignCenter)
             self.about_ffmpeg = QtWidgets.QLabel("FFmpeg is licensed under the GNU GPL license",
-                                                alignment=QtCore.Qt.AlignCenter)
+                                                 alignment=QtCore.Qt.AlignCenter)
             self.with_love = QtWidgets.QLabel("Made with <3 by craftnut",
-                                                alignment=QtCore.Qt.AlignCenter)
-            self.github_repository = QtWidgets.QLabel('''<a href='https://github.com/craftnut/TurnH264'>View the source code on GitHub</a>''',
-                                                alignment=QtCore.Qt.AlignCenter)
+                                              alignment=QtCore.Qt.AlignCenter)
+            self.github_repository = QtWidgets.QLabel('''<a href='https://github.com/craftnut/TurnH264' style='color: #FAE8EB'>View the source code on GitHub</a>''',
+                                                      alignment=QtCore.Qt.AlignCenter)
             self.github_repository.setOpenExternalLinks(True)
+            self.personal_site = QtWidgets.QLabel('''<a href='https://craftnut.wtf/' style='color: #FAE8EB'>https://craftnut.wtf/</a>''',
+                                                  alignment=QtCore.Qt.AlignCenter)
 
             self.layout = QtWidgets.QVBoxLayout(self)
             self.layout.addWidget(self.about_dialog)
@@ -166,6 +172,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.layout.addWidget(self.about_ffmpeg)
             self.layout.addWidget(self.with_love)
             self.layout.addWidget(self.github_repository)
+            self.layout.addWidget(self.personal_site)
 
     class HelpWindow(QtWidgets.QDialog): #Help window
         def __init__(self):
@@ -175,12 +182,15 @@ class MainWindow(QtWidgets.QWidget): #Main class
             self.help_output = QtWidgets.QLabel("If you didn't select an output, check the directory for output.mp4",
                                                 alignment=QtCore.Qt.AlignCenter)
             self.help_bitrate = QtWidgets.QLabel("Lower values for quality are higher quality, don't ask me why, I wish I knew.",
-                                                alignment=QtCore.Qt.AlignCenter)
+                                                 alignment=QtCore.Qt.AlignCenter)
+            self.help_resolution = QtWidgets.QLabel('Enter resolution as "WIDTHxHEIGHT" or "WIDTH:HEIGHT"',
+                                                    alignment=QtCore.Qt.AlignCenter)
             self.found_bug = QtWidgets.QLabel("Found a bug? Report it on the GitHub page.",
-                                                alignment=QtCore.Qt.AlignCenter)
+                                              alignment=QtCore.Qt.AlignCenter)
 
             self.layout = QtWidgets.QVBoxLayout(self)
             self.layout.addWidget(self.help_output)
+            self.layout.addWidget(self.help_resolution)
             self.layout.addWidget(self.help_bitrate)
             self.layout.addWidget(self.found_bug)
 

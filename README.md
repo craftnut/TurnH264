@@ -3,7 +3,7 @@
 ## A simple GUI program that converts the selected video into H264 using FFmpeg.
 
 <p align="center">
-<img src="screenshot.png">
+<img src="image_assets/screenshot.png">
 </p>
 
 How to run from source (Every OS): </br>
