@@ -1,4 +1,5 @@
 # coding: utf-8
+import argparse
 import os
 import signal
 import subprocess
@@ -10,6 +11,10 @@ from ctypes import alignment
 from PySide6 import QtCore, QtGui, QtWidgets
 
 import download_script
+
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('--no_style', required=False, default=False, help="Disables the QStyleSheet, might imporve readability.", action="store_true")
+args = arg_parser.parse_args()
 
 try: #to see if FFmpeg is available system-wide
     subprocess.Popen(['ffmpeg', '-version'],
@@ -98,6 +103,10 @@ class MainWindow(QtWidgets.QWidget): #Main class
                                                 alignment=QtCore.Qt.AlignCenter)
         self.resolution = QtWidgets.QLineEdit(self,
                                               alignment=QtCore.Qt.AlignCenter)
+        self.fps_text = QtWidgets.QLabel("Change framerate (leave blank for original):",
+                                         alignment=QtCore.Qt.AlignCenter)
+        self.fps = QtWidgets.QLineEdit(self,
+                                       alignment=QtCore.Qt.AlignCenter)
         self.audio_codec = QtWidgets.QComboBox(self)
         self.audio_codec.addItems(["AAC", "Opus"])
         self.encoder_preset = QtWidgets.QComboBox(self)
@@ -113,24 +122,26 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.output_file, 3, 1, 1, 1)
         self.layout.addWidget(self.choose_output_button, 3, 0, 1, 1)
         self.layout.addWidget(self.resolution_text, 4, 0, 1, 1)
-        self.layout.addWidget(self.resolution, 4, 1, 1, 1)
-        self.layout.addWidget(self.video_quality_text, 5, 0, 1, 1)
-        self.layout.addWidget(self.video_quality, 5, 1, 1, 1)
-        self.layout.addWidget(self.encoder_preset_text, 6, 0, 1, 1)
-        self.layout.addWidget(self.encoder_preset, 6, 1, 1, 1)
-        self.layout.addWidget(self.audio_codec_text, 7, 0, 1, 1)
-        self.layout.addWidget(self.audio_codec, 7, 1, 1, 1)
-        self.layout.addWidget(self.audio_bitrate_dialog, 8, 0, 1, 1)
-        self.layout.addWidget(self.audio_bitrate, 8, 1, 1, 1)
-        self.layout.addWidget(self.thread_dialog, 9, 0, 1, 1)
-        self.layout.addWidget(self.threads, 9, 1, 1, 1)
-        self.layout.addWidget(self.go_button, 10, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 10, 0, 1, 1)
-        self.layout.addWidget(self.progress_bar_text, 10, 1, 1, 1)
-        self.layout.addWidget(self.overwrite_existing_button, 10, 0, 1, 1)
-        self.layout.addWidget(self.dont_overwrite_button, 10, 1, 1, 1)
-        self.layout.addWidget(self.about_button, 11, 0, 1, 1,)
-        self.layout.addWidget(self.help_button, 11, 1, 1, 1)
+        self.layout.addWidget(self.resolution, 4, 1, 1, 1)        
+        self.layout.addWidget(self.fps_text, 5, 0, 1, 1)
+        self.layout.addWidget(self.fps, 5, 1, 1, 1)
+        self.layout.addWidget(self.video_quality_text, 6, 0, 1, 1)
+        self.layout.addWidget(self.video_quality, 6, 1, 1, 1)
+        self.layout.addWidget(self.encoder_preset_text, 7, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset, 7, 1, 1, 1)
+        self.layout.addWidget(self.audio_codec_text, 8, 0, 1, 1)
+        self.layout.addWidget(self.audio_codec, 8, 1, 1, 1)
+        self.layout.addWidget(self.audio_bitrate_dialog, 9, 0, 1, 1)
+        self.layout.addWidget(self.audio_bitrate, 9, 1, 1, 1)
+        self.layout.addWidget(self.thread_dialog, 10, 0, 1, 1)
+        self.layout.addWidget(self.threads, 10, 1, 1, 1)
+        self.layout.addWidget(self.go_button, 11, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 11, 0, 1, 1)
+        self.layout.addWidget(self.progress_bar_text, 11, 1, 1, 1)
+        self.layout.addWidget(self.overwrite_existing_button, 11, 0, 1, 1)
+        self.layout.addWidget(self.dont_overwrite_button, 11, 1, 1, 1)
+        self.layout.addWidget(self.about_button, 12, 0, 1, 1,)
+        self.layout.addWidget(self.help_button, 12, 1, 1, 1)
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
@@ -306,10 +317,19 @@ class MainWindow(QtWidgets.QWidget): #Main class
         if self.resolution.text() == "":
             ffmpeg_res = "scale=" + subprocess.check_output([
                 'ffprobe', '-v', 'error', '-select_streams', 'v:0',
-                '-show_entries', 'stream=width,height', '-of' 'csv=s=x:p=0', str(ffmpeg_input_file)
+                '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', str(ffmpeg_input_file)
             ])
         else: #If there is text contained, use the user's given resolution
             ffmpeg_res = "scale=" + self.resolution.text()
+            
+        #Get original framerate if not specified
+        if self.fps.text() == "":
+            ffmpeg_fps = subprocess.check_output([
+                'ffprobe', '-v', 'error', '-select_streams', 'v',
+                '-of', 'default=noprint_wrappers=1:nokey=1', '-show_entries', 'stream=r_frame_rate', str(ffmpeg_input_file)
+            ])
+        else: #If there is text contained, use the user's given framerate
+            ffmpeg_fps = self.fps.text()
             
         ffmpeg_output_file = self.output_file.text()
         ffmpeg_crf = self.video_quality.value()
@@ -332,6 +352,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
             '-c:a', str(ffmpeg_audio_codec),
             '-b:a', str(ffmpeg_audio_bitrate),
             '-vf', str(ffmpeg_res),
+            '-r', str(ffmpeg_fps),
             '-preset', str(ffmpeg_encoder_preset),
             '-vbr', 'off',
             '-threads', str(ffmpeg_threading) if str(ffmpeg_threading) else '4',
@@ -414,8 +435,9 @@ if __name__ == "__main__": #Launch the main-window on run
     main_app_window.show()
 
     #load the stylesheet
-    with open('style.qss', 'r') as style:
-        _style = style.read()
-        app.setStyleSheet(_style)
+    if not args.no_style:
+        with open('style.qss', 'r') as style:
+            _style = style.read()
+            app.setStyleSheet(_style)
 
     sys.exit(app.exec())
