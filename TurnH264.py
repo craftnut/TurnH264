@@ -51,13 +51,6 @@ class MainWindow(QtWidgets.QWidget): #Main class
         super().__init__()
         self.setWindowTitle("TurnH264")
 
-        #Import fonts
-        QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Regular.ttf")
-        QtGui.QFontDatabase.addApplicationFont("fonts/IBMPlexSans-Semibold.ttf")
-        
-        #Setup window icon
-        self.setWindowIcon(QtGui.QIcon("./image_assets/Python-logo-notext.svg"))
-
         #Setup main window elements
         self.go_button = QtWidgets.QPushButton("Go")
         self.cancel_button = QtWidgets.QPushButton("Cancel Process")
@@ -171,10 +164,10 @@ class MainWindow(QtWidgets.QWidget): #Main class
                                                  alignment=QtCore.Qt.AlignCenter)
             self.with_love = QtWidgets.QLabel("Made with <3 by craftnut",
                                               alignment=QtCore.Qt.AlignCenter)
-            self.github_repository = QtWidgets.QLabel('''<a href='https://github.com/craftnut/TurnH264' style='color: #FAE8EB'>View the source code on GitHub</a>''',
+            self.github_repository = QtWidgets.QLabel('''<a href='https://github.com/craftnut/TurnH264' style='color: #blue'>View the source code on GitHub</a>''',
                                                       alignment=QtCore.Qt.AlignCenter)
             self.github_repository.setOpenExternalLinks(True)
-            self.personal_site = QtWidgets.QLabel('''<a href='https://craftnut.wtf/' style='color: #FAE8EB'>https://craftnut.wtf/</a>''',
+            self.personal_site = QtWidgets.QLabel('''<a href='https://craftnut.wtf/' style='color: #blue'>https://craftnut.wtf/</a>''',
                                                   alignment=QtCore.Qt.AlignCenter)
 
             self.layout = QtWidgets.QVBoxLayout(self)
