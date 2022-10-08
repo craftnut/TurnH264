@@ -112,6 +112,10 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.encoder_preset = QtWidgets.QComboBox(self)
         self.encoder_preset.addItems(["veryfast", "faster", "fast", "medium", "slow", "slower"])
         self.encoder_preset.setCurrentIndex(3)
+        self.video_codec_text = QtWidgets.QLabel("H264 or H265:",
+                                                 alignment=QtCore.Qt.AlignCenter)
+        self.video_codec = QtWidgets.QComboBox(self)
+        self.video_codec.addItems(["libx264", "libx265"])
 
         # column, row, height, width
         self.layout = QtWidgets.QGridLayout(self)
@@ -125,23 +129,25 @@ class MainWindow(QtWidgets.QWidget): #Main class
         self.layout.addWidget(self.resolution, 4, 1, 1, 1)        
         self.layout.addWidget(self.fps_text, 5, 0, 1, 1)
         self.layout.addWidget(self.fps, 5, 1, 1, 1)
-        self.layout.addWidget(self.video_quality_text, 6, 0, 1, 1)
-        self.layout.addWidget(self.video_quality, 6, 1, 1, 1)
-        self.layout.addWidget(self.encoder_preset_text, 7, 0, 1, 1)
-        self.layout.addWidget(self.encoder_preset, 7, 1, 1, 1)
-        self.layout.addWidget(self.audio_codec_text, 8, 0, 1, 1)
-        self.layout.addWidget(self.audio_codec, 8, 1, 1, 1)
-        self.layout.addWidget(self.audio_bitrate_dialog, 9, 0, 1, 1)
-        self.layout.addWidget(self.audio_bitrate, 9, 1, 1, 1)
-        self.layout.addWidget(self.thread_dialog, 10, 0, 1, 1)
-        self.layout.addWidget(self.threads, 10, 1, 1, 1)
-        self.layout.addWidget(self.go_button, 11, 0, 1, 2)
-        self.layout.addWidget(self.cancel_button, 11, 0, 1, 1)
-        self.layout.addWidget(self.progress_bar_text, 11, 1, 1, 1)
-        self.layout.addWidget(self.overwrite_existing_button, 11, 0, 1, 1)
-        self.layout.addWidget(self.dont_overwrite_button, 11, 1, 1, 1)
-        self.layout.addWidget(self.about_button, 12, 0, 1, 1,)
-        self.layout.addWidget(self.help_button, 12, 1, 1, 1)
+        self.layout.addWidget(self.video_codec_text, 6, 0, 1, 1)
+        self.layout.addWidget(self.video_codec, 6, 1, 1, 1)
+        self.layout.addWidget(self.video_quality_text, 7, 0, 1, 1)
+        self.layout.addWidget(self.video_quality, 7, 1, 1, 1)
+        self.layout.addWidget(self.encoder_preset_text, 8, 0, 1, 1)
+        self.layout.addWidget(self.encoder_preset, 8, 1, 1, 1)
+        self.layout.addWidget(self.audio_codec_text, 9, 0, 1, 1)
+        self.layout.addWidget(self.audio_codec, 9, 1, 1, 1)
+        self.layout.addWidget(self.audio_bitrate_dialog, 10, 0, 1, 1)
+        self.layout.addWidget(self.audio_bitrate, 10, 1, 1, 1)
+        self.layout.addWidget(self.thread_dialog, 11, 0, 1, 1)
+        self.layout.addWidget(self.threads, 11, 1, 1, 1)
+        self.layout.addWidget(self.go_button, 12, 0, 1, 2)
+        self.layout.addWidget(self.cancel_button, 12, 0, 1, 1)
+        self.layout.addWidget(self.progress_bar_text, 12, 1, 1, 1)
+        self.layout.addWidget(self.overwrite_existing_button, 12, 0, 1, 1)
+        self.layout.addWidget(self.dont_overwrite_button, 12, 1, 1, 1)
+        self.layout.addWidget(self.about_button, 13, 0, 1, 1,)
+        self.layout.addWidget(self.help_button, 13, 1, 1, 1)
         self.overwrite_existing_button.hide()
         self.dont_overwrite_button.hide()
         self.cancel_button.hide()
@@ -318,10 +324,11 @@ class MainWindow(QtWidgets.QWidget): #Main class
             ffmpeg_res = "scale=" + subprocess.check_output([
                 'ffprobe', '-v', 'error', '-select_streams', 'v:0',
                 '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', str(ffmpeg_input_file)
-            ])
+            ]).decode("UTF-8")
+            print(ffmpeg_res)
         else: #If there is text contained, use the user's given resolution
             ffmpeg_res = "scale=" + self.resolution.text()
-            
+        
         #Get original framerate if not specified
         if self.fps.text() == "":
             ffmpeg_fps = subprocess.check_output([
@@ -336,9 +343,12 @@ class MainWindow(QtWidgets.QWidget): #Main class
         ffmpeg_audio_bitrate = str(int(self.audio_bitrate.value()*32))+'k'
         ffmpeg_threading = self.threads.value()
         ffmpeg_audio_codec = self.audio_codec.currentIndex()
+        ffmpeg_video_codec = self.video_codec.currentIndex()
         ffmpeg_encoder_preset = self.encoder_preset.currentText()
         audio_codecs = ["aac", "libopus"]
+        video_codecs = ["libx264", "libx265"]
         ffmpeg_audio_codec = audio_codecs[ffmpeg_audio_codec]
+        ffmpeg_video_codec = video_codecs[ffmpeg_video_codec]
         finish_box = MainWindow.FinishDialog()
         finish_box.resize(160,80)
         self.cancel_button.show()
@@ -347,7 +357,7 @@ class MainWindow(QtWidgets.QWidget): #Main class
         ffmpeg_run = subprocess.Popen ([
             ffmpeg_path, '-y', # if you would like to use your PATH's FFmpeg, remove the "./" from "./ffmpeg"
             '-i', ffmpeg_input_file,
-            '-c:v', 'libx264',
+            '-c:v', str(ffmpeg_video_codec), #libx264 or libx265
             '-crf', str(ffmpeg_crf),
             '-c:a', str(ffmpeg_audio_codec),
             '-b:a', str(ffmpeg_audio_bitrate),
@@ -431,7 +441,7 @@ if __name__ == "__main__": #Launch the main-window on run
     app = QtWidgets.QApplication([])
 
     main_app_window = MainWindow()
-    main_app_window.resize(640, 360)
+    main_app_window.resize(640, 0)
     main_app_window.show()
 
     #load the stylesheet
