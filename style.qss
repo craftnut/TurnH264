@@ -1,19 +1,22 @@
+
 QWidget {
-    background-color: #FFFFFF;
+    background-color: #1A1423;
 }
 
 QLabel {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #1A1423;
+    color: #FAE8EB;
     font-size: 14px;
 }
 
 QPushButton {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #1A1423;
+    color: #FAE8EB;
     font-size: 14px;
-    outline-style: outset; 
-    outline-color: #F0F0F0;
+    border-style: outset; 
+    border-color: #372549;
+    border-width: 3px;
+    border-radius: 5px;
     padding: 3px;
 }
 
@@ -22,39 +25,46 @@ QPushButton:pressed {
 }
 
 QLineEdit {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #1A1423;
+    color: #FAE8EB;
     font-size: 14px;
-    outline-style: outset; 
-    outline-color: #F0F0F0;
+    border-style: outset; 
+    border-color: #372549;
+    border-width: 3px;
+    border-radius: 5px;
     padding: 3px;
 }
 
 QComboBox {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #1A1423;
+    color: #FAE8EB;
     font-size: 14px;
-    outline-style: outset; 
-    outline-color: #F0F0F0;
+    border-style: outset; 
+    border-color: #372549;
+    border-width: 3px;
+    border-radius: 5px;
     padding: 3px;
 }
 
 QAbstractItemView {
-    background-color: #FFFFFF;
-    color: #000000;
+    background-color: #1A1423;
+    color: #FAE8EB;
     font-size: 14px;
-    outline-style: outset; 
-    outline-color: #F0F0F0;
+    border-style: outset; 
+    border-color: #372549;
+    border-width: 3px;
+    border-radius: 5px;
     padding: 3px;
 }
 
 QSlider::groove:horizontal {
+    border: 1px solid #372549;
     height: 10px;
 }
 
 QSlider::handle:horizontal {
-    background-color: #FFFFFF;
-    border: 1px solid #F0F0F0;
+    background-color: #FAE8EB;
+    border: 1px solid #372549;
     width: 16px;
     margin: -1px 0;
     border-radius: 2px;

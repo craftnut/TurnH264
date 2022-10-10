@@ -14,14 +14,18 @@ import download_script
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--no_style', required=False, default=False, help="Disables the QStyleSheet, might imporve readability.", action="store_true")
+arg_parser.add_argument('--ignore_ffmpeg', required=False, default=False, help="Ignores FFmpeg installed at a system-level, for testing purposes only.", action="store_true")
 args = arg_parser.parse_args()
 
 try: #to see if FFmpeg is available system-wide
-    subprocess.Popen(['ffmpeg', '-version'],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ffmpeg_path = "ffmpeg"
-    ffprobe_path = "ffprobe"
-    print("FFmpeg already installed, starting program!")
+    if not args.ignore_ffmpeg: #ignore system's FFmpeg and download it anyways if the argument is given.
+        subprocess.Popen(['ffmpeg', '-version'],
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ffmpeg_path = "ffmpeg"
+        ffprobe_path = "ffprobe"
+        print("FFmpeg already installed, starting program!")
+    else: #needed to get the code to move to the exception if you skip the system-wide FFmpeg check
+        raise Exception() 
 except: #if it's not, check if it's already been downloaded
     if sys.platform == "win32" and os.path.exists('./ffmpeg.exe'):
         ffmpeg_path = "./ffmpeg.exe"
