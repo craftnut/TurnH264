@@ -6,3 +6,8 @@
 *style copy.qss*
 *ffmpeg*
 *ffprobe*
+*TurnH264.py*
+*download_script.py*
+*TurnH264_old.py*
+*download_script_old.py*
+*.venv*
