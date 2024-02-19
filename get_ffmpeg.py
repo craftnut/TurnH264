@@ -1,5 +1,6 @@
 import subprocess
 
+unsupported = "unsupported"
 avail = "FFmpeg already installed, starting program!"
 ff_linux = "ffmpeg-master-latest-linux64-gpl"
 ff_windows = "ffmpeg-master-latest-win64-gpl"
@@ -13,7 +14,7 @@ def check_ffmpeg(skip, platform):
         else:
             raise Exception()
     except: 
-        get_ffmpeg(platform)
+        return get_ffmpeg(platform)
         
 def get_ffmpeg(platform):
     import wget
@@ -28,7 +29,7 @@ def get_ffmpeg(platform):
             extract(platform)
         elif platform == "linux":
             wget.download('https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz')
-            extract(platform)
+            return extract(platform)
         else:
             return "unsupported"
     
