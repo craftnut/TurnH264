@@ -1,6 +1,10 @@
 
-# *TurnH264*
-## *A simple GUI program that converts the selected video into H264 using FFmpeg.*
+# I am currently working on a refactor, please check branch <a href="https://github.com/craftnut/TurnH264/tree/refactor">refactor</a> for more info
+
+## *TurnH264*
+
+### *A simple GUI 
+program that converts the selected video into H264 using FFmpeg.*
 
 <p align="center">
 <img src="screenshot.png">
