@@ -10,6 +10,7 @@ from ctypes import alignment
 
 from get_ffmpeg import check_ffmpeg
 from windows.unsupported_dialog import unsupported_dialog
+from windows.advanced_options_dialog import advanced_options
 
 from PySide6 import QtGui
 from PySide6.QtCore import Qt
@@ -31,14 +32,15 @@ from PySide6.QtWidgets import (
 threads = os.cpu_count()
 
 quality = 22
-encoder_preset = "medium"
-audio_codec = "AAC"
-audio_bitrate = 128
 
+encoder_preset = "medium"
 if not threads < 6:
     encoder_threads = 4
 else:
     encoder_threads = 2
+    
+audio_codec = "AAC"
+audio_bitrate = 128
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -60,9 +62,7 @@ ffmpeg_path = check_ffmpeg(args.ignore_ffmpeg, platform)
 print(ffmpeg_path)
 
 if ffmpeg_path == "unsupported":
-    print("unsupported")
     unsupported_dialog(platform)
-print("Continued")
 
 def main():
     app = QApplication(sys.argv)
@@ -74,7 +74,7 @@ def main():
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        
+
         layout = QGridLayout()
         self.setLayout(layout)
         self.setWindowTitle("TurnH264")
@@ -96,12 +96,13 @@ class MainWindow(QWidget):
         out_file = QLineEdit(
         )
         choose_out_location = QPushButton(
-            "Choose"
+            "Choose" 
         )
         
-        advanced_options = QPushButton(
+        open_advanced_options = QPushButton(
             "Advanced Options"
         )
+        open_advanced_options.clicked.connect(get_advanced_settings)
         go = QPushButton(
             "Go"
         )
@@ -114,7 +115,17 @@ class MainWindow(QWidget):
         layout.addWidget(out_file, 3, 0, 1, 2)
         layout.addWidget(choose_out_location, 3, 2, 1, 1)
         
-        layout.addWidget(advanced_options, 4, 0, 1, 2)
-        layout.addWidget(go, 4, 2, 1, 1)
-            
+        layout.addWidget(open_advanced_options, 4, 0, 1, 2)
+        layout.addWidget(go, 4, 2, 1, 1)       
+
+def get_advanced_settings(): 
+    (
+        quality,
+        encoder_preset,
+        encoder_threads,
+        audio_codec,
+        audio_bitrate
+    ) = advanced_options(threads)
+    print(quality, encoder_preset, encoder_threads, audio_codec, audio_bitrate) # Remove when feature fully implemented
+
 main()
