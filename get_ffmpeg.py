@@ -8,7 +8,7 @@ ff_windows = "ffmpeg-master-latest-win64-gpl"
 def check_ffmpeg(skip, platform):
     try:
         if not skip:
-            subprocess.Popen(['ffmpeg'])
+            subprocess.Popen(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(avail)
             return "ffmpeg"
         else:

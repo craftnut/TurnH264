@@ -2,16 +2,10 @@ import sys
 
 from PySide6 import QtCore
 from PySide6.QtWidgets import (
-    QAbstractItemView,
     QApplication,
-    QFileDialog,
     QGridLayout,
     QLabel,
-    QLineEdit,
-    QListWidget,
-    QListWidgetItem,
     QPushButton,
-    QComboBox,
     QWidget,
 )
         

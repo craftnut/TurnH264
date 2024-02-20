@@ -9,12 +9,19 @@
 <img src="screenshot.png">
 </p>
 
+## Running
+
 How to run from source (Every OS): </br>
 Install requirements: ``pip install -r requirements.txt`` </br>
 FFmpeg builds are available at https://www.ffmpeg.org/download.html, but they should automatically download </br>
 Everything should work on Windows and Linux, while it is not tested on other systems, it should work on any machine that supports Python and FFmpeg. </br>
 
-### *Would like to implement:*
+## Packaging
+
+I use Nuitka to build, simply install Nuitka into the virtual environment, <br>
+and then run ``python -m nuitka main.py``
+
+### TODO List
 
 -   [X] Progress bar
 -   [X] FFmpeg downloader

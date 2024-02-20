@@ -2,3 +2,6 @@
 *.venv*
 *download_script_old.py*
 *TurnH264_old.py*
+*qml*
+*qmltest.py*
+*main.build*
